@@ -30,16 +30,6 @@ jobs:
       - run: npx nx affected --target=build --parallel --max-parallel=3
       - run: npx nx affected --target=test --parallel --max-parallel=2
       - run: npx nx-cloud stop-all-agents
-
-      - uses: aws-actions/configure-aws-credentials@v1
-        name: Configure AWS Credentials
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-central-1
-      - run: aws s3 sync ./dist/ s3://${AWS_S3_BUCKET} --delete
-        name: Deploy static site to S3 bucket
-      
   pr:
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'pull_request' }}
@@ -86,6 +76,12 @@ jobs:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: eu-central-1
-
+    
+    - uses: actions/setup-node@v1 
+        with: 
+          node-version: '14'
+    - run: npm install
+    - name: Build
+      run: npx nx build
     - name: Deploy static site to S3 bucket
-      run: aws s3 sync ./dist/ s3://${AWS_S3_BUCKET} --delete
+      run: aws s3 sync ./public/ s3://${AWS_S3_BUCKET} --delete
