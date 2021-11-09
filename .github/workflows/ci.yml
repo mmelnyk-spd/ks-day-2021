@@ -78,8 +78,8 @@ jobs:
         aws-region: eu-central-1
     
     - uses: actions/setup-node@v1 
-        with: 
-          node-version: '14'
+      with: 
+        node-version: '14'
     - run: npm install
     - name: Build
       run: npx nx build
