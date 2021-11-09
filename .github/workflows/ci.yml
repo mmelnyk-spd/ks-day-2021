@@ -12,71 +12,67 @@ env:
   AWS_S3_BUCKET: "ks-day-2021"
 
 jobs:
-  main:
-    runs-on: ubuntu-latest
-    if: ${{ github.event_name != 'pull_request' }}
-    steps:
-      - uses: actions/checkout@v2
-        name: Checkout [main]
-        with:
-          fetch-depth: 0
-      - name: Derive appropriate SHAs for base and head for `nx affected` commands
-        uses: nrwl/nx-set-shas@v2
-      - uses: actions/setup-node@v1 
-        with: 
-          node-version: '14'
-      - run: npm install
-      - run: npx nx-cloud start-ci-run    
-      - run: npx nx affected --target=build --parallel --max-parallel=3
-      - run: npx nx affected --target=test --parallel --max-parallel=2
-      - run: npx nx-cloud stop-all-agents
-  pr:
-    runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'pull_request' }}
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.pull_request.head.ref }}
-          fetch-depth: 0
-      - name: Derive appropriate SHAs for base and head for `nx affected` commands
-        uses: nrwl/nx-set-shas@v2
-      - uses: actions/setup-node@v1
-        with: 
-          node-version: '14'
-      - run: npm install
-      - run: npx nx-cloud start-ci-run
-      - run: npx nx affected --target=build --parallel --max-parallel=3
-      - run: npx nx affected --target=test --parallel --max-parallel=2
-      - run: npx nx-cloud stop-all-agents
-  agents:
-    runs-on: ubuntu-latest
-    name: Agent 1
-    timeout-minutes: 60
-    strategy:
-      matrix:
-        agent: [ 1, 2, 3 ]
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
-        with: 
-          node-version: '14'
-      - run: npm install
-      - name: Start Nx Agent ${{ matrix.agent }}
-        run: npx nx-cloud start-agent  
-
+  # main:
+  #   runs-on: ubuntu-latest
+  #   if: ${{ github.event_name != 'pull_request' }}
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #       name: Checkout [main]
+  #       with:
+  #         fetch-depth: 0
+  #     - name: Derive appropriate SHAs for base and head for `nx affected` commands
+  #       uses: nrwl/nx-set-shas@v2
+  #     - uses: actions/setup-node@v1 
+  #       with: 
+  #         node-version: '14'
+  #     - run: npm install
+  #     - run: npx nx-cloud start-ci-run    
+  #     - run: npx nx affected --target=build --parallel --max-parallel=3
+  #     - run: npx nx affected --target=test --parallel --max-parallel=2
+  #     - run: npx nx-cloud stop-all-agents
+  # pr:
+  #   runs-on: ubuntu-latest
+  #   if: ${{ github.event_name == 'pull_request' }}
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #       with:
+  #         ref: ${{ github.event.pull_request.head.ref }}
+  #         fetch-depth: 0
+  #     - name: Derive appropriate SHAs for base and head for `nx affected` commands
+  #       uses: nrwl/nx-set-shas@v2
+  #     - uses: actions/setup-node@v1
+  #       with: 
+  #         node-version: '14'
+  #     - run: npm install
+  #     - run: npx nx-cloud start-ci-run
+  #     - run: npx nx affected --target=build --parallel --max-parallel=3
+  #     - run: npx nx affected --target=test --parallel --max-parallel=2
+  #     - run: npx nx-cloud stop-all-agents
+  # agents:
+  #   runs-on: ubuntu-latest
+  #   name: Agent 1
+  #   timeout-minutes: 60
+  #   strategy:
+  #     matrix:
+  #       agent: [ 1, 2, 3 ]
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - uses: actions/setup-node@v1
+  #       with: 
+  #         node-version: '14'
+  #     - run: npm install
+  #     - name: Start Nx Agent ${{ matrix.agent }}
+  #       run: npx nx-cloud start-agent  
   deploy:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout
-      uses: actions/checkout@v1
-
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: eu-central-1
-    
+    - uses: actions/checkout@v2
     - uses: actions/setup-node@v1 
       with: 
         node-version: '14'
@@ -84,4 +80,4 @@ jobs:
     - name: Build
       run: npx nx build
     - name: Deploy static site to S3 bucket
-      run: aws s3 sync ./public/ s3://${AWS_S3_BUCKET} --delete
+      run: aws s3 sync ./dist/ s3://${AWS_S3_BUCKET} --delete
